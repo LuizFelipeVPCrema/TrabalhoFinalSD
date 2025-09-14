@@ -33,10 +33,23 @@ const Register = ({ onLogin }) => {
         email: formData.email,
         password: formData.password
       });
-      setSuccess('Conta criada com sucesso!');
-      onLogin(response.data.token, response.data.user);
+      
+      if (response.data.token && response.data.user) {
+        setSuccess('Conta criada com sucesso!');
+        onLogin(response.data.token, response.data.user);
+      } else {
+        setError('Resposta inválida do servidor');
+      }
     } catch (err) {
-      setError(err.response?.data || 'Erro ao criar conta');
+      if (err.response?.status === 409) {
+        setError('Este email já está cadastrado');
+      } else if (err.response?.status === 400) {
+        setError('Dados inválidos. Verifique os campos preenchidos.');
+      } else if (err.code === 'ECONNREFUSED') {
+        setError('Servidor não está rodando. Verifique se o backend está ativo.');
+      } else {
+        setError(err.response?.data?.message || 'Erro ao criar conta. Tente novamente.');
+      }
     }
   };
 

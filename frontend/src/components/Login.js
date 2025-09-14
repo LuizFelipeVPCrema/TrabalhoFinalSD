@@ -22,9 +22,22 @@ const Login = ({ onLogin }) => {
 
     try {
       const response = await axios.post('http://localhost:8080/login', formData);
-      onLogin(response.data.token, response.data.user);
+      
+      if (response.data.token && response.data.user) {
+        onLogin(response.data.token, response.data.user);
+      } else {
+        setError('Resposta inválida do servidor');
+      }
     } catch (err) {
-      setError(err.response?.data || 'Erro ao fazer login');
+      if (err.response?.status === 401) {
+        setError('Email ou senha incorretos');
+      } else if (err.response?.status === 400) {
+        setError('Dados inválidos. Verifique os campos preenchidos.');
+      } else if (err.code === 'ECONNREFUSED') {
+        setError('Servidor não está rodando. Verifique se o backend está ativo.');
+      } else {
+        setError(err.response?.data?.message || 'Erro ao fazer login. Tente novamente.');
+      }
     }
   };
 
