@@ -110,6 +110,7 @@ func validateToken(tokenString string) (*Claims, error) {
 func registerHandler(w http.ResponseWriter, r *http.Request) {
 	var req RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Printf("REGISTER 400 invalid body from %s: %v", r.RemoteAddr, err)
 		http.Error(w, "Dados inválidos", http.StatusBadRequest)
 		return
 	}
@@ -117,6 +118,7 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 	// Verificar se email já existe
 	for _, user := range users {
 		if user.Email == req.Email {
+			log.Printf("REGISTER 409 email exists: %s", req.Email)
 			http.Error(w, "Email já cadastrado", http.StatusConflict)
 			return
 		}
@@ -125,6 +127,7 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 	// Gerar salt único
 	salt, err := generateSalt()
 	if err != nil {
+		log.Printf("REGISTER 500 generateSalt error for %s: %v", req.Email, err)
 		http.Error(w, "Erro interno", http.StatusInternalServerError)
 		return
 	}
@@ -132,6 +135,7 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 	// Hash da senha
 	hashedPassword, err := hashPassword(req.Password, salt)
 	if err != nil {
+		log.Printf("REGISTER 500 hashPassword error for %s: %v", req.Email, err)
 		http.Error(w, "Erro interno", http.StatusInternalServerError)
 		return
 	}
@@ -151,6 +155,7 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 	// Gerar JWT
 	token, err := generateJWT(user)
 	if err != nil {
+		log.Printf("REGISTER 500 generateJWT error for %s: %v", req.Email, err)
 		http.Error(w, "Erro interno", http.StatusInternalServerError)
 		return
 	}
@@ -162,11 +167,13 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
+	log.Printf("REGISTER 200 user_id=%d email=%s", user.ID, user.Email)
 }
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {
 	var req LoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Printf("LOGIN 400 invalid body from %s: %v", r.RemoteAddr, err)
 		http.Error(w, "Dados inválidos", http.StatusBadRequest)
 		return
 	}
@@ -181,12 +188,14 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if user == nil {
+		log.Printf("LOGIN 401 unknown email: %s", req.Email)
 		http.Error(w, "Credenciais inválidas", http.StatusUnauthorized)
 		return
 	}
 
 	// Verificar senha
 	if !verifyPassword(req.Password, user.Salt, user.Password) {
+		log.Printf("LOGIN 401 wrong password for %s", req.Email)
 		http.Error(w, "Credenciais inválidas", http.StatusUnauthorized)
 		return
 	}
@@ -194,6 +203,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	// Gerar JWT
 	token, err := generateJWT(*user)
 	if err != nil {
+		log.Printf("LOGIN 500 generateJWT error for %s: %v", req.Email, err)
 		http.Error(w, "Erro interno", http.StatusInternalServerError)
 		return
 	}
@@ -205,11 +215,13 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
+	log.Printf("LOGIN 200 user_id=%d email=%s", user.ID, user.Email)
 }
 
 func validateTokenHandler(w http.ResponseWriter, r *http.Request) {
 	authHeader := r.Header.Get("Authorization")
 	if authHeader == "" {
+		log.Printf("VALIDATE 401 missing token from %s", r.RemoteAddr)
 		http.Error(w, "Token não fornecido", http.StatusUnauthorized)
 		return
 	}
@@ -217,6 +229,7 @@ func validateTokenHandler(w http.ResponseWriter, r *http.Request) {
 	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 	claims, err := validateToken(tokenString)
 	if err != nil {
+		log.Printf("VALIDATE 401 invalid token from %s: %v", r.RemoteAddr, err)
 		http.Error(w, "Token inválido", http.StatusUnauthorized)
 		return
 	}
@@ -229,11 +242,40 @@ func validateTokenHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
+	log.Printf("VALIDATE 200 user_id=%d email=%s", claims.UserID, claims.Email)
 }
 
 func healthHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+}
+
+// requestLogMiddleware registra método, caminho, status e duração de cada requisição
+func requestLogMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		lrw := &loggingResponseWriter{ResponseWriter: w, status: 200}
+		next.ServeHTTP(lrw, r)
+		duration := time.Since(start)
+		log.Printf("HTTP %s %s -> %d (%dB) in %s from %s", r.Method, r.URL.Path, lrw.status, lrw.bytes, duration, r.RemoteAddr)
+	})
+}
+
+type loggingResponseWriter struct {
+	http.ResponseWriter
+	status int
+	bytes  int
+}
+
+func (lrw *loggingResponseWriter) WriteHeader(code int) {
+	lrw.status = code
+	lrw.ResponseWriter.WriteHeader(code)
+}
+
+func (lrw *loggingResponseWriter) Write(b []byte) (int, error) {
+	n, err := lrw.ResponseWriter.Write(b)
+	lrw.bytes += n
+	return n, err
 }
 
 func main() {
@@ -243,6 +285,8 @@ func main() {
 	}
 
 	r := mux.NewRouter()
+	// Middleware de logging básico
+	r.Use(requestLogMiddleware)
 
 	// Rotas públicas
 	r.HandleFunc("/health", healthHandler).Methods("GET")

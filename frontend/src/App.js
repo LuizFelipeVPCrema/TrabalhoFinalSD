@@ -16,7 +16,13 @@ function App() {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      // Verificar se o token ainda é válido
+      // Reidratar estado imediatamente e validar em segundo plano
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        try { setUser(JSON.parse(storedUser)); } catch {}
+      }
+      setIsAuthenticated(true);
+
       fetch('http://localhost:8080/validate', {
         method: 'GET',
         headers: {
@@ -24,31 +30,27 @@ function App() {
           'Content-Type': 'application/json'
         }
       })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Token inválido');
-        }
-        return response.json();
-      })
-      .then(data => {
-        if (data.valid && data.user) {
-          setIsAuthenticated(true);
-          setUser(data.user);
-        } else {
+      .then(async (response) => {
+        if (response.status === 401) {
+          // Token inválido/expirado confirmado pelo servidor
           localStorage.removeItem('token');
+          localStorage.removeItem('user');
           setIsAuthenticated(false);
           setUser(null);
+          return null;
+        }
+        // Para outros erros (ex: 5xx, CORS), não derrubamos a sessão
+        try { return await response.json(); } catch { return null; }
+      })
+      .then((data) => {
+        if (data && data.valid && data.user) {
+          setUser(data.user);
+          localStorage.setItem('user', JSON.stringify(data.user));
         }
       })
       .catch((error) => {
-        console.error('Erro na validação do token:', error);
-        localStorage.removeItem('token');
-        setIsAuthenticated(false);
-        setUser(null);
-        // Se o token estiver expirado, mostrar mensagem
-        if (error.message === 'Token inválido') {
-          console.log('Token expirado ou inválido. Redirecionando para login.');
-        }
+        // Erros de rede não derrubam a sessão
+        console.warn('Falha ao validar token (mantendo sessão):', error);
       })
       .finally(() => {
         setLoading(false);
@@ -60,12 +62,16 @@ function App() {
 
   const handleLogin = (token, userData) => {
     localStorage.setItem('token', token);
+    if (userData) {
+      try { localStorage.setItem('user', JSON.stringify(userData)); } catch {}
+    }
     setIsAuthenticated(true);
     setUser(userData);
   };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     setIsAuthenticated(false);
     setUser(null);
     // Forçar redirecionamento para login
