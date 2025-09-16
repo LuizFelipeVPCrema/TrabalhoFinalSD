@@ -8,7 +8,7 @@ services:
     environment:
       - PORT=8080
       - JWT_SECRET=your-secret-key-here-change-in-production
-      - CORS_ADDITIONAL_ORIGINS=http://182.20.10.3:8081,http://182.20.10.3
+      - CORS_ADDITIONAL_ORIGINS=http://172.20.10.3:8081,http://172.20.10.3,http://172.20.10.2:3000,http://172.20.10.2
     networks:
       - app-network
 
