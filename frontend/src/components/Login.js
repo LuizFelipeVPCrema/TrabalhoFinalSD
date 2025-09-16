@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import config from '../config';
 
 const Login = ({ onLogin }) => {
   const [formData, setFormData] = useState({
@@ -21,7 +22,7 @@ const Login = ({ onLogin }) => {
     setError('');
 
     try {
-      const response = await axios.post('http://172.20.10.4:8081/login', formData);
+      const response = await axios.post(`${config.AUTH_SERVICE_URL}/login`, formData);
       
       if (response.data.token && response.data.user) {
         onLogin(response.data.token, response.data.user);

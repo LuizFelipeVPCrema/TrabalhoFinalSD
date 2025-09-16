@@ -7,7 +7,7 @@ services:
     ports:
       - "8081:8081"
     environment:
-      - PORT=8080
+      - PORT=8081
       - AUTH_SERVICE_URL=http://172.20.10.4:8080
     restart: unless-stopped
     healthcheck:

@@ -7,6 +7,7 @@ import Materias from './components/Materias';
 import ProvasTrabalhos from './components/ProvasTrabalhos';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
+import config from './config';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -23,7 +24,7 @@ function App() {
       }
       setIsAuthenticated(true);
 
-      fetch('http://172.20.10.4:8081/validate', {
+      fetch(`${config.AUTH_SERVICE_URL}/validate`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,

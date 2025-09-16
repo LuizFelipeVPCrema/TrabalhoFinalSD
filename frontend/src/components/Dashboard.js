@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import config from '../config';
 
 const Dashboard = () => {
   const [materias, setMaterias] = useState([]);
@@ -25,8 +26,8 @@ const Dashboard = () => {
       const headers = { Authorization: `Bearer ${token}` };
 
       const [materiasResponse, provasResponse] = await Promise.all([
-        axios.get('http://172.20.10.3:8080/materias', { headers }),
-        axios.get('http://172.20.10.3:8080/provas-trabalhos', { headers })
+        axios.get(`${config.BACKEND_SERVICE_URL}/materias`, { headers }),
+        axios.get(`${config.BACKEND_SERVICE_URL}/provas-trabalhos`, { headers })
       ]);
 
       setMaterias(materiasResponse.data.data || []);

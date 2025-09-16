@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import config from '../config';
 
 const Materias = () => {
   const [materias, setMaterias] = useState([]);
@@ -18,7 +19,7 @@ const Materias = () => {
   const fetchMaterias = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://172.20.10.3:8080/materias', {
+      const response = await axios.get(`${config.BACKEND_SERVICE_URL}/materias`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setMaterias(response.data.data || []);
@@ -43,12 +44,12 @@ const Materias = () => {
       const token = localStorage.getItem('token');
       
       if (editingMateria) {
-        const response = await axios.put(`http://172.20.10.3:8080/materias/${editingMateria.id}`, formData, {
+        const response = await axios.put(`${config.BACKEND_SERVICE_URL}/materias/${editingMateria.id}`, formData, {
           headers: { Authorization: `Bearer ${token}` }
         });
         console.log('Matéria atualizada:', response.data.message);
       } else {
-        const response = await axios.post('http://172.20.10.3:8080/materias', formData, {
+        const response = await axios.post(`${config.BACKEND_SERVICE_URL}/materias`, formData, {
           headers: { Authorization: `Bearer ${token}` }
         });
         console.log('Matéria criada:', response.data.message);
@@ -76,7 +77,7 @@ const Materias = () => {
     if (window.confirm('Tem certeza que deseja excluir esta matéria?')) {
       try {
         const token = localStorage.getItem('token');
-        await axios.delete(`http://172.20.10.3:8080/materias/${id}`, {
+        await axios.delete(`${config.BACKEND_SERVICE_URL}/materias/${id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         fetchMaterias();
