@@ -26,8 +26,8 @@ const ProvasTrabalhos = () => {
       const headers = { Authorization: `Bearer ${token}` };
 
       const [provasResponse, materiasResponse] = await Promise.all([
-        axios.get('http://localhost:8081/provas-trabalhos', { headers }),
-        axios.get('http://localhost:8081/materias', { headers })
+        axios.get('http://172.20.10.3:8080/provas-trabalhos', { headers }),
+        axios.get('http://172.20.10.3:8080/materias', { headers })
       ]);
 
       setProvasTrabalhos(provasResponse.data.data || []);
@@ -62,12 +62,12 @@ const ProvasTrabalhos = () => {
       };
       
       if (editingProva) {
-        const response = await axios.put(`http://localhost:8081/provas-trabalhos/${editingProva.id}`, data, {
+        const response = await axios.put(`http://172.20.10.3:8080/provas-trabalhos/${editingProva.id}`, data, {
           headers: { Authorization: `Bearer ${token}` }
         });
         console.log('Prova/Trabalho atualizado:', response.data.message);
       } else {
-        const response = await axios.post('http://localhost:8081/provas-trabalhos', data, {
+        const response = await axios.post('http://172.20.10.3:8080/provas-trabalhos', data, {
           headers: { Authorization: `Bearer ${token}` }
         });
         console.log('Prova/Trabalho criado:', response.data.message);
@@ -106,7 +106,7 @@ const ProvasTrabalhos = () => {
     if (window.confirm('Tem certeza que deseja excluir esta prova/trabalho?')) {
       try {
         const token = localStorage.getItem('token');
-        await axios.delete(`http://localhost:8081/provas-trabalhos/${id}`, {
+        await axios.delete(`http://172.20.10.3:8080/provas-trabalhos/${id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         fetchData();

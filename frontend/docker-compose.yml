@@ -9,8 +9,8 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - REACT_APP_AUTH_SERVICE_URL=http://localhost:8080
-      - REACT_APP_BACKEND_SERVICE_URL=http://localhost:8081
+      - REACT_APP_AUTH_SERVICE_URL=http://172.20.10.4:8080
+      - REACT_APP_BACKEND_SERVICE_URL=http://172.20.10.3:8081
       - CHOKIDAR_USEPOLLING=true
     networks:
       - frontend-network

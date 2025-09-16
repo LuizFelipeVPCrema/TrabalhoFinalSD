@@ -18,7 +18,7 @@ const Materias = () => {
   const fetchMaterias = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:8081/materias', {
+      const response = await axios.get('http://172.20.10.3:8080/materias', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setMaterias(response.data.data || []);
@@ -43,12 +43,12 @@ const Materias = () => {
       const token = localStorage.getItem('token');
       
       if (editingMateria) {
-        const response = await axios.put(`http://localhost:8081/materias/${editingMateria.id}`, formData, {
+        const response = await axios.put(`http://172.20.10.3:8080/materias/${editingMateria.id}`, formData, {
           headers: { Authorization: `Bearer ${token}` }
         });
         console.log('Matéria atualizada:', response.data.message);
       } else {
-        const response = await axios.post('http://localhost:8081/materias', formData, {
+        const response = await axios.post('http://172.20.10.3:8080/materias', formData, {
           headers: { Authorization: `Bearer ${token}` }
         });
         console.log('Matéria criada:', response.data.message);
@@ -76,7 +76,7 @@ const Materias = () => {
     if (window.confirm('Tem certeza que deseja excluir esta matéria?')) {
       try {
         const token = localStorage.getItem('token');
-        await axios.delete(`http://localhost:8081/materias/${id}`, {
+        await axios.delete(`http://172.20.10.3:8080/materias/${id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         fetchMaterias();

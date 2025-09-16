@@ -21,7 +21,7 @@ const Login = ({ onLogin }) => {
     setError('');
 
     try {
-      const response = await axios.post('http://localhost:8080/login', formData);
+      const response = await axios.post('http://172.20.10.4:8081/login', formData);
       
       if (response.data.token && response.data.user) {
         onLogin(response.data.token, response.data.user);

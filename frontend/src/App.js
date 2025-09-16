@@ -23,7 +23,7 @@ function App() {
       }
       setIsAuthenticated(true);
 
-      fetch('http://localhost:8080/validate', {
+      fetch('http://172.20.10.4:8081/validate', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,

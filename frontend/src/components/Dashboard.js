@@ -25,8 +25,8 @@ const Dashboard = () => {
       const headers = { Authorization: `Bearer ${token}` };
 
       const [materiasResponse, provasResponse] = await Promise.all([
-        axios.get('http://localhost:8081/materias', { headers }),
-        axios.get('http://localhost:8081/provas-trabalhos', { headers })
+        axios.get('http://172.20.10.3:8080/materias', { headers }),
+        axios.get('http://172.20.10.3:8080/provas-trabalhos', { headers })
       ]);
 
       setMaterias(materiasResponse.data.data || []);

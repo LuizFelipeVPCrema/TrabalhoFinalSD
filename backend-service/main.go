@@ -72,7 +72,7 @@ var (
 	provasTrabalhos []ProvaTrabalho
 	nextMateriaID   = 1
 	nextProvaID     = 1
-	authServiceURL  = "http://auth-service:8080"
+	authServiceURL  = "http://172.20.10.4:8080"
 )
 
 // Funções auxiliares para validação e resposta
@@ -531,7 +531,7 @@ func main() {
 
 	authServiceURL = os.Getenv("AUTH_SERVICE_URL")
 	if authServiceURL == "" {
-		authServiceURL = "http://auth-service:8080"
+		authServiceURL = "http://172.20.10.4:8080"
 	}
 
 	r := mux.NewRouter()
