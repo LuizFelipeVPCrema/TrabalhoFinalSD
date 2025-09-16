@@ -531,7 +531,7 @@ func main() {
 
 	authServiceURL = os.Getenv("AUTH_SERVICE_URL")
 	if authServiceURL == "" {
-		authServiceURL = "http://auth-service:8080"
+		authServiceURL = "http://172.20.10.4:8080"
 	}
 
 	r := mux.NewRouter()
@@ -554,11 +554,26 @@ func main() {
 	r.HandleFunc("/provas-trabalhos/{id}", authMiddleware(updateProvaTrabalhoHandler)).Methods("PUT")
 	r.HandleFunc("/provas-trabalhos/{id}", authMiddleware(deleteProvaTrabalhoHandler)).Methods("DELETE")
 
-	// CORS
+	// CORS - Configuração para permitir conexões do frontend
+	allowedOrigins := []string{
+		"http://localhost:3000",
+		"http://172.20.10.2:3000",
+		"http://172.20.10.2",
+	}
+	
+	// Permitir origens adicionais via variável de ambiente
+	if additionalOrigins := os.Getenv("CORS_ADDITIONAL_ORIGINS"); additionalOrigins != "" {
+		origins := strings.Split(additionalOrigins, ",")
+		for _, origin := range origins {
+			allowedOrigins = append(allowedOrigins, strings.TrimSpace(origin))
+		}
+	}
+	
 	corsHandler := handlers.CORS(
-		handlers.AllowedOrigins([]string{"*"}),
+		handlers.AllowedOrigins(allowedOrigins),
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
-		handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
+		handlers.AllowedHeaders([]string{"Content-Type", "Authorization", "X-User-ID"}),
+		handlers.AllowCredentials(),
 	)(r)
 
 	fmt.Printf("Backend Service rodando na porta %s\n", port)

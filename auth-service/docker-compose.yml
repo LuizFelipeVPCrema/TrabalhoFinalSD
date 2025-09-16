@@ -7,10 +7,11 @@ services:
       dockerfile: Dockerfile
     container_name: auth-service
     ports:
-      - "8080:8080"
+      - "0.0.0.0:8080:8080"
     environment:
       - PORT=8080
       - JWT_SECRET=your-secret-key-here-change-in-production
+      - CORS_ADDITIONAL_ORIGINS=http://182.20.10.3:8081,http://182.20.10.3
     networks:
       - auth-network
     restart: unless-stopped

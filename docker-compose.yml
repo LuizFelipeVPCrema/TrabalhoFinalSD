@@ -4,19 +4,22 @@ services:
   auth-service:
     build: ./auth-service
     ports:
-      - "8080:8080"
+      - "0.0.0.0:8080:8080"
     environment:
       - PORT=8080
+      - JWT_SECRET=your-secret-key-here-change-in-production
+      - CORS_ADDITIONAL_ORIGINS=http://182.20.10.3:8081,http://182.20.10.3
     networks:
       - app-network
 
   backend-service:
     build: ./backend-service
     ports:
-      - "8081:8081"
+      - "0.0.0.0:8081:8081"
     environment:
       - PORT=8081
-      - AUTH_SERVICE_URL=http://auth-service:8080
+      - AUTH_SERVICE_URL=http://172.20.10.4:8080
+      - CORS_ADDITIONAL_ORIGINS=http://172.20.10.2:3000,http://172.20.10.2
     depends_on:
       - auth-service
     networks:

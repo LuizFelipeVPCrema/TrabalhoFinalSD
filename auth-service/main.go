@@ -294,11 +294,29 @@ func main() {
 	r.HandleFunc("/login", loginHandler).Methods("POST")
 	r.HandleFunc("/validate", validateTokenHandler).Methods("GET")
 
-	// CORS
+	// CORS - Configuração para permitir conexões do backend
+	allowedOrigins := []string{
+		"http://localhost:8081",
+		"http://182.20.10.3:8081",
+		"http://182.20.10.3",
+		"http://localhost:3000",
+		"http://172.20.10.2:3000",
+		"http://172.20.10.2",
+	}
+	
+	// Permitir origens adicionais via variável de ambiente
+	if additionalOrigins := os.Getenv("CORS_ADDITIONAL_ORIGINS"); additionalOrigins != "" {
+		origins := strings.Split(additionalOrigins, ",")
+		for _, origin := range origins {
+			allowedOrigins = append(allowedOrigins, strings.TrimSpace(origin))
+		}
+	}
+	
 	corsHandler := handlers.CORS(
-		handlers.AllowedOrigins([]string{"*"}),
+		handlers.AllowedOrigins(allowedOrigins),
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
-		handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
+		handlers.AllowedHeaders([]string{"Content-Type", "Authorization", "X-User-ID"}),
+		handlers.AllowCredentials(),
 	)(r)
 
 	fmt.Printf("Auth Service rodando na porta %s\n", port)
